@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"strings"
+	"time"
 )
 
 type deck []string
@@ -25,5 +29,44 @@ func listOfCards() deck {
 		}
 	}
 
+	return cards
+}
+
+func (d deck) deal(handSize int) (deck, deck) {
+	return d[:handSize], d[handSize:]
+}
+
+func (d deck) toString() string {
+	return strings.Join([]string(d), ",")
+}
+
+func (d deck) saveToFile(filename string) error {
+	return ioutil.WriteFile(filename, []byte(d.toString()), 0666)
+}
+
+func listOfCardsFromFile(filename string) deck {
+	bs, err := ioutil.ReadFile(filename)
+	ErrorHandled(err)
+
+	s := strings.Split(string(bs), ",")
+
+	return deck(s)
+}
+
+func (d deck) shuffle() {
+
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	for i := range d {
+		np := r.Intn(len(d) - 1)
+
+		d[i], d[np] = d[np], d[i]
+	}
+}
+
+func newDeck() deck {
+	cards := listOfCards()
+	cards.shuffle()
 	return cards
 }
